@@ -13,16 +13,6 @@ documentation = "https://docs.rs/tauri-plugin-social-auth"
 readme = "README.MD"
 keywords = ["tauri", "plugin", "auth", "oauth", "mobile"]
 categories = ["authentication"]
-include = [
-  "/Cargo.toml",
-  "/README.MD",
-  "/LICENSE-APACHE",
-  "/LICENSE-MIT",
-  "/build.rs",
-  "/permissions",
-  "/src",
-  "/android",
-]
 
 [lib]
 name = "tauri_plugin_social_auth"
