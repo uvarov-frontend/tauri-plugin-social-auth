@@ -22,7 +22,6 @@ include = [
   "/permissions",
   "/src",
   "/android",
-  "/ios",
 ]
 
 [lib]
