@@ -295,6 +295,30 @@
       "type": "string",
       "oneOf": [
         {
+          "description": "Enables the apple_sign_in command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-apple-sign-in",
+          "markdownDescription": "Enables the apple_sign_in command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the apple_sign_in command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-apple-sign-in",
+          "markdownDescription": "Denies the apple_sign_in command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the google_sign_in command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-google-sign-in",
+          "markdownDescription": "Enables the google_sign_in command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the google_sign_in command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-google-sign-in",
+          "markdownDescription": "Denies the google_sign_in command without any pre-configured scope."
+        },
+        {
           "description": "Enables the signIn command without any pre-configured scope.",
           "type": "string",
           "const": "allow-signIn",
@@ -305,6 +329,36 @@
           "type": "string",
           "const": "deny-signIn",
           "markdownDescription": "Denies the signIn command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the vk_sign_in command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-vk-sign-in",
+          "markdownDescription": "Enables the vk_sign_in command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the vk_sign_in command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-vk-sign-in",
+          "markdownDescription": "Denies the vk_sign_in command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the yandex_sign_in command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-yandex-sign-in",
+          "markdownDescription": "Enables the yandex_sign_in command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the yandex_sign_in command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-yandex-sign-in",
+          "markdownDescription": "Denies the yandex_sign_in command without any pre-configured scope."
+        },
+        {
+          "description": "Default permissions for the plugin.",
+          "type": "string",
+          "const": "default",
+          "markdownDescription": "Default permissions for the plugin."
         }
       ]
     }

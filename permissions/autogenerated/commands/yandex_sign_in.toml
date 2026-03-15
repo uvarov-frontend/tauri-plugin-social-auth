@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-yandex-sign-in"
+description = "Enables the yandex_sign_in command without any pre-configured scope."
+commands.allow = ["yandex_sign_in"]
+
+[[permission]]
+identifier = "deny-yandex-sign-in"
+description = "Denies the yandex_sign_in command without any pre-configured scope."
+commands.deny = ["yandex_sign_in"]

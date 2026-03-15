@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-vk-sign-in"
+description = "Enables the vk_sign_in command without any pre-configured scope."
+commands.allow = ["vk_sign_in"]
+
+[[permission]]
+identifier = "deny-vk-sign-in"
+description = "Denies the vk_sign_in command without any pre-configured scope."
+commands.deny = ["vk_sign_in"]

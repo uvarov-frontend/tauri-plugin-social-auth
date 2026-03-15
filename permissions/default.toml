@@ -1,0 +1,11 @@
+"$schema" = "../schemas/schema.json"
+
+[[permission]]
+identifier = "default"
+description = "Default permissions for the plugin."
+permissions = [
+  "allow-google-sign-in",
+  "allow-vk-sign-in",
+  "allow-yandex-sign-in",
+  "allow-apple-sign-in",
+]
