@@ -38,6 +38,48 @@ const SOCIAL_ENV_FILE_NAMES: &[&str] = &[
     ".env",
 ];
 
+#[cfg(target_os = "macos")]
+fn macos_swift_runtime_paths() -> Vec<std::path::PathBuf> {
+    let swift_binary = find_swift_binary();
+    let mut paths = Vec::new();
+
+    if let Some(toolchain_usr_dir) = swift_binary.parent().and_then(std::path::Path::parent) {
+        let toolchain_runtime = toolchain_usr_dir.join("lib").join("swift").join("macosx");
+        if toolchain_runtime.exists() {
+            paths.push(toolchain_runtime);
+        }
+    }
+
+    let system_runtime = std::path::PathBuf::from("/usr/lib/swift");
+    if system_runtime.exists() {
+        paths.push(system_runtime);
+    }
+
+    paths.sort();
+    paths.dedup();
+    paths
+}
+
+#[cfg(target_os = "macos")]
+fn emit_macos_swift_runtime_metadata() {
+    if target_os().as_deref() != Some("macos") {
+        return;
+    }
+
+    let paths = macos_swift_runtime_paths();
+    if paths.is_empty() {
+        return;
+    }
+
+    let encoded = paths
+        .iter()
+        .map(|path| path.display().to_string())
+        .collect::<Vec<_>>()
+        .join(";");
+
+    println!("cargo:swift_runtime_paths={encoded}");
+}
+
 fn rerun_if_changed(path: &str) {
     println!("cargo:rerun-if-changed={path}");
 }
@@ -743,6 +785,9 @@ fn main() {
     rerun_if_changed("android");
     rerun_if_changed("src");
     rerun_if_changed("build.rs");
+
+    #[cfg(target_os = "macos")]
+    emit_macos_swift_runtime_metadata();
 
     #[cfg(target_os = "macos")]
     link_macos_package();
