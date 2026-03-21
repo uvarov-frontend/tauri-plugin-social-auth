@@ -26,9 +26,9 @@ let package = Package(
       name: "tauri-plugin-social-auth",
       dependencies: [
         .byName(name: "Tauri"),
-        .product(name: "GoogleSignIn", package: "GoogleSignIn-iOS", condition: .when(platforms: [.iOS])),
-        .product(name: "VKID", package: "vkid-ios-sdk", condition: .when(platforms: [.iOS])),
-        .product(name: "YandexLoginSDK", package: "yandex-login-sdk-ios", condition: .when(platforms: [.iOS]))
+        .product(name: "GoogleSignIn", package: "GoogleSignIn-iOS"),
+        .product(name: "VKID", package: "vkid-ios-sdk"),
+        .product(name: "YandexLoginSDK", package: "yandex-login-sdk-ios")
       ],
       path: "Sources"
     )

@@ -4,6 +4,7 @@ import UIKit
 
 struct SocialAccessTokenResult: Encodable {
   let accessToken: String
+  let deviceId: String?
 }
 
 struct SocialIdTokenResult: Encodable {

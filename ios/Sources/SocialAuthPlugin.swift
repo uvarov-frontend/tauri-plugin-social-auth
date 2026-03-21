@@ -1,6 +1,9 @@
 import AuthenticationServices
 import Foundation
+import ObjectiveC.runtime
 import Tauri
+import UIKit
+import WebKit
 
 #if canImport(GoogleSignIn)
 import GoogleSignIn
@@ -72,6 +75,12 @@ private final class AppleSignInCoordinator: NSObject, ASAuthorizationControllerD
 
 @objc(SocialAuthPlugin)
 class SocialAuthPlugin: Plugin {
+  private typealias OpenURLHandler = @convention(c) (AnyObject, Selector, UIApplication, NSURL, NSDictionary) -> Bool
+  private static let openURLSelector = NSSelectorFromString("application:openURL:options:")
+  private static weak var activeInstance: SocialAuthPlugin?
+  private static var originalOpenURLImplementation: IMP?
+  private static var isOpenURLHookInstalled = false
+
 #if canImport(VKID)
   private var configuredVkClientId: String?
   private var configuredVkClientSecret: String?
@@ -83,6 +92,12 @@ class SocialAuthPlugin: Plugin {
 #endif
 
   private var appleCoordinator: AppleSignInCoordinator?
+
+  override func load(webview: WKWebView) {
+    super.load(webview: webview)
+    Self.activeInstance = self
+    Self.installOpenURLHookIfNeeded()
+  }
 
   @objc public func googleSignIn(_ invoke: Invoke) {
     SocialAuthBridge.runOnMain {
@@ -210,8 +225,7 @@ class SocialAuthPlugin: Plugin {
       }
 
       let authConfiguration = AuthConfiguration(
-        scope: Scope(Set(["vkid.personal_info", "email", "user_id"])),
-        forceWebViewFlow: true
+        scope: Scope(Set(["vkid.personal_info", "email", "user_id"]))
       )
 
       VKID.shared.authorize(
@@ -225,7 +239,7 @@ class SocialAuthPlugin: Plugin {
             return
           }
 
-          invoke.resolve(SocialAccessTokenResult(accessToken: token))
+          invoke.resolve(SocialAccessTokenResult(accessToken: token, deviceId: SocialAuthBridge.trimToNil(session.sessionId)))
         } catch AuthError.cancelled {
           invoke.reject("VK ID Sign-In canceled by user", code: "VK_AUTH_CANCELED")
         } catch {
@@ -246,7 +260,9 @@ class SocialAuthPlugin: Plugin {
         return
       }
 
-      guard let clientId = SocialAuthBridge.socialConfigValue("YA_IOS_CLIENT_ID") else {
+      guard let clientId = SocialAuthBridge.socialConfigValue("YA_IOS_CLIENT_ID")
+        ?? SocialAuthBridge.socialConfigValue("YA_CLIENT_ID")
+      else {
         invoke.reject(
           "Yandex Sign-In failed: YA_IOS_CLIENT_ID is missing in iOS build config",
           code: "YANDEX_AUTH_INIT_FAILED"
@@ -274,7 +290,7 @@ class SocialAuthPlugin: Plugin {
       }
 
       do {
-        try YandexLoginSDK.shared.activate(with: clientId)
+        try YandexLoginSDK.shared.activate(with: clientId, authorizationStrategy: .default)
       } catch {
         invoke.reject("Yandex Sign-In initialization failed", code: "YANDEX_AUTH_INIT_FAILED", error: error)
         return
@@ -286,7 +302,7 @@ class SocialAuthPlugin: Plugin {
         try YandexLoginSDK.shared.authorize(
           with: presentingViewController,
           customValues: nil,
-          authorizationStrategy: .webOnly
+          authorizationStrategy: .default
         )
       } catch {
         self.pendingYandexInvoke = nil
@@ -346,6 +362,50 @@ class SocialAuthPlugin: Plugin {
     }
   }
 #endif
+
+  private static func installOpenURLHookIfNeeded() {
+    guard !isOpenURLHookInstalled else { return }
+    guard let delegate = UIApplication.shared.delegate else { return }
+
+    let delegateClass: AnyClass = type(of: delegate)
+    guard let method = class_getInstanceMethod(delegateClass, openURLSelector) else { return }
+
+    originalOpenURLImplementation = method_getImplementation(method)
+
+    let replacement: @convention(block) (AnyObject, UIApplication, NSURL, NSDictionary) -> Bool = { target, application, url, options in
+      let originalHandled = callOriginalOpenURL(on: target, application: application, url: url, options: options)
+      let pluginHandled = activeInstance?.handleIncomingURL(url as URL) ?? false
+      return pluginHandled || originalHandled
+    }
+
+    method_setImplementation(method, imp_implementationWithBlock(replacement))
+    isOpenURLHookInstalled = true
+  }
+
+  private static func callOriginalOpenURL(on target: AnyObject, application: UIApplication, url: NSURL, options: NSDictionary) -> Bool {
+    guard let implementation = originalOpenURLImplementation else { return false }
+
+    let function = unsafeBitCast(implementation, to: OpenURLHandler.self)
+    return function(target, openURLSelector, application, url, options)
+  }
+
+  private func handleIncomingURL(_ url: URL) -> Bool {
+    var handled = false
+
+#if canImport(GoogleSignIn)
+    handled = GIDSignIn.sharedInstance.handle(url) || handled
+#endif
+
+#if canImport(VKID)
+    handled = VKID.shared.open(url: url) || handled
+#endif
+
+#if canImport(YandexLoginSDK)
+    handled = YandexLoginSDK.shared.tryHandleOpenURL(url) || handled
+#endif
+
+    return handled
+  }
 }
 
 #if canImport(YandexLoginSDK)
@@ -362,7 +422,7 @@ extension SocialAuthPlugin: YandexLoginSDKObserver {
           return
         }
 
-        invoke.resolve(SocialAccessTokenResult(accessToken: token))
+        invoke.resolve(SocialAccessTokenResult(accessToken: token, deviceId: nil))
 
       case .failure(let error):
         if self.isYandexCanceled(error) {

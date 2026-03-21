@@ -27,6 +27,7 @@ serde_json = "1.0"
 swift-rs = "1.0.7"
 
 [build-dependencies]
+plist = "1.7.0"
 tauri-plugin = { version = "2.5.3", features = ["build"] }
 
 [target.'cfg(target_os = "macos")'.build-dependencies]

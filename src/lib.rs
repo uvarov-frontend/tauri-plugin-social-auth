@@ -33,10 +33,8 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
         .setup(|_app, _api| {
             #[cfg(target_os = "android")]
             {
-                let _ = _api.register_android_plugin(
-                    SOCIAL_AUTH_PLUGIN_IDENTIFIER,
-                    "SocialAuthPlugin",
-                )?;
+                let _ = _api
+                    .register_android_plugin(SOCIAL_AUTH_PLUGIN_IDENTIFIER, "SocialAuthPlugin")?;
             }
 
             #[cfg(target_os = "ios")]
