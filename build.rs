@@ -5,6 +5,31 @@ const COMMANDS: &[&str] = &[
     "apple_sign_in",
 ];
 
+fn file_content_hash(path: &std::path::Path) -> u64 {
+    use std::hash::{Hash, Hasher};
+
+    let bytes = std::fs::read(path)
+        .unwrap_or_else(|error| panic!("failed to read {} for hashing: {error}", path.display()));
+    let mut hasher = std::collections::hash_map::DefaultHasher::new();
+    path.file_name().hash(&mut hasher);
+    bytes.hash(&mut hasher);
+    hasher.finish()
+}
+
+fn vk_captcha_stub_revision_key(source_dir: &std::path::Path) -> String {
+    let package_swift = source_dir.join("Package.swift");
+    let source_swift = source_dir
+        .join("Sources")
+        .join("VKCaptchaSDK")
+        .join("VKCaptchaSDK.swift");
+
+    format!(
+        "{:016x}{:016x}",
+        file_content_hash(&package_swift),
+        file_content_hash(&source_swift)
+    )
+}
+
 #[cfg(target_os = "macos")]
 const SOCIAL_ENV_FILE_NAMES: &[&str] = &[
     ".env.development.local",
@@ -237,7 +262,10 @@ fn install_ios_swift_wrapper() {
     let vk_captcha_mirror_dir = manifest_dir
         .join("target")
         .join("swiftpm-mirror")
-        .join("vkcaptcha-sdk-mirror");
+        .join(format!(
+            "vkcaptcha-sdk-mirror-{}",
+            vk_captcha_stub_revision_key(&vk_captcha_stub_dir)
+        ));
     let swift_wrapper_dir = out_dir.join("swift-bin");
     let swift_wrapper_path = swift_wrapper_dir.join("swift");
     let swift_binary = find_swift_binary();
@@ -528,6 +556,8 @@ fn sync_ios_social_auth_info_plist() {
 
     tauri_plugin::mobile::update_info_plist(|dict| {
         ensure_query_scheme(dict, "vkauthorize-silent".into());
+        ensure_query_scheme(dict, "secondaryyandexloginsdk".into());
+        ensure_query_scheme(dict, "primaryyandexloginsdk".into());
 
         if let Some(google_scheme) = google_scheme {
             ensure_url_scheme(dict, google_scheme);

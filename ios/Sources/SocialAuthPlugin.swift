@@ -292,7 +292,10 @@ class SocialAuthPlugin: Plugin {
       do {
         try YandexLoginSDK.shared.activate(with: clientId, authorizationStrategy: .default)
       } catch {
-        invoke.reject("Yandex Sign-In initialization failed", code: "YANDEX_AUTH_INIT_FAILED", error: error)
+        invoke.reject(
+          "Yandex Sign-In initialization failed: \(self.yandexErrorMessage(error))",
+          code: "YANDEX_AUTH_INIT_FAILED"
+        )
         return
       }
 
@@ -306,7 +309,10 @@ class SocialAuthPlugin: Plugin {
         )
       } catch {
         self.pendingYandexInvoke = nil
-        invoke.reject("Yandex Sign-In failed", code: "YANDEX_AUTH_FAILED", error: error)
+        invoke.reject(
+          "Yandex Sign-In failed: \(self.yandexErrorMessage(error))",
+          code: "YANDEX_AUTH_FAILED"
+        )
       }
 #else
       invoke.reject("Yandex Login SDK is not linked for iOS", code: "YANDEX_AUTH_IOS_SDK_MISSING")
@@ -430,7 +436,10 @@ extension SocialAuthPlugin: YandexLoginSDKObserver {
           return
         }
 
-        invoke.reject("Yandex Sign-In failed", code: "YANDEX_AUTH_FAILED", error: error)
+        invoke.reject(
+          "Yandex Sign-In failed: \(self.yandexErrorMessage(error))",
+          code: "YANDEX_AUTH_FAILED"
+        )
       }
     }
   }
@@ -438,6 +447,22 @@ extension SocialAuthPlugin: YandexLoginSDKObserver {
   private func isYandexCanceled(_ error: Error) -> Bool {
     guard let sdkError = error as? any YandexLoginSDKError else { return false }
     return sdkError.message.localizedCaseInsensitiveContains("user has closed the view controller")
+  }
+
+  private func yandexErrorMessage(_ error: Error) -> String {
+    if let sdkError = error as? any YandexLoginSDKError {
+      let message = SocialAuthBridge.trimToNil(sdkError.message)
+      if let message {
+        return message
+      }
+    }
+
+    let nsError = error as NSError
+    if let message = SocialAuthBridge.trimToNil(nsError.localizedDescription) {
+      return message
+    }
+
+    return String(describing: error)
   }
 }
 #endif
