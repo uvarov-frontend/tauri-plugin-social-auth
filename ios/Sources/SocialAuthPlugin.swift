@@ -17,6 +17,11 @@ import VKID
 import YandexLoginSDK
 #endif
 
+#if canImport(GoogleSignIn)
+@_silgen_name("SocialAuthAppAuthIOSCompatibilityForceLoad")
+private func SocialAuthAppAuthIOSCompatibilityForceLoad()
+#endif
+
 private struct VkSignInArgs: Decodable {
   let theme: String?
 }
@@ -95,6 +100,9 @@ class SocialAuthPlugin: Plugin {
 
   override func load(webview: WKWebView) {
     super.load(webview: webview)
+#if canImport(GoogleSignIn)
+    SocialAuthAppAuthIOSCompatibilityForceLoad()
+#endif
     Self.activeInstance = self
     Self.installOpenURLHookIfNeeded()
   }

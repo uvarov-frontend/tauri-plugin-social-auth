@@ -17,15 +17,25 @@ let package = Package(
   ],
   dependencies: [
     .package(name: "Tauri", path: "../.tauri/tauri-api"),
+    .package(name: "AppAuth", url: "https://github.com/openid/AppAuth-iOS.git", from: "2.0.0"),
     .package(url: "https://github.com/google/GoogleSignIn-iOS.git", exact: "9.1.0"),
     .package(url: "https://github.com/VKCOM/vkid-ios-sdk.git", exact: "2.9.2"),
     .package(url: "https://github.com/yandexmobile/yandex-login-sdk-ios.git", exact: "3.0.2")
   ],
   targets: [
     .target(
+      name: "AppAuthIOSCompatibility",
+      dependencies: [
+        .product(name: "AppAuth", package: "AppAuth")
+      ],
+      path: "AppAuthIOSCompatibility",
+      publicHeadersPath: "include"
+    ),
+    .target(
       name: "tauri-plugin-social-auth",
       dependencies: [
         .byName(name: "Tauri"),
+        "AppAuthIOSCompatibility",
         .product(name: "GoogleSignIn", package: "GoogleSignIn-iOS"),
         .product(name: "VKID", package: "vkid-ios-sdk"),
         .product(name: "YandexLoginSDK", package: "yandex-login-sdk-ios")
