@@ -21,7 +21,7 @@ Those parts belong to the application.
 
 ## Platform behavior
 
-| Provider | iOS | macOS | Android | Web |
+| Provider | iOS | macOS | Android | Web/Windows/Linux |
 | --- | --- | --- | --- | --- |
 | Apple | Native | Native | Unsupported | Unsupported |
 | Google | Native | Unsupported | Native | Unsupported |
